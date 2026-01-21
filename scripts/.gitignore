@@ -1,0 +1,11 @@
+# Ignore script outputs
+*.csv
+*.xlsx
+*.json
+data/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
