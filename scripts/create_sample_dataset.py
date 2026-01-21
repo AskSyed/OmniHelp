@@ -46,17 +46,17 @@ def generate_sample_dataset(
     # Product templates
     product_templates = {
         "Laptops": [
-            ("{brand} {model} Laptop", "High-performance {category.lower()} with Intel Core i{processor} processor, {ram}GB RAM, and {storage}GB SSD storage. Perfect for {use_case}."),
-            ("{brand} {model} Notebook", "Business-class {category.lower()} featuring {ram}GB memory, {storage}GB storage, and {display} inch display. Ideal for professionals."),
+            ("{brand} {model} Laptop", "High-performance {category_lower} with Intel Core i{processor} processor, {ram}GB RAM, and {storage}GB SSD storage. Perfect for {use_case}."),
+            ("{brand} {model} Notebook", "Business-class {category_lower} featuring {ram}GB memory, {storage}GB storage, and {display} inch display. Ideal for professionals."),
         ],
         "Smartphones": [
-            ("{brand} {model} Smartphone", "Latest {category.lower()} with {ram}GB RAM, {storage}GB storage, and {camera}MP camera. Features {display} inch display and long battery life."),
+            ("{brand} {model} Smartphone", "Latest {category_lower} with {ram}GB RAM, {storage}GB storage, and {camera}MP camera. Features {display} inch display and long battery life."),
         ],
         "Accessories": [
-            ("{brand} {product_type}", "Premium {category.lower()} with {features}. Designed for {use_case}."),
+            ("{brand} {product_type}", "Premium {category_lower} with {features}. Designed for {use_case}."),
         ],
         "Electronics": [
-            ("{brand} {model} {product_type}", "Advanced {category.lower()} with cutting-edge features including {features}. Perfect for {use_case}."),
+            ("{brand} {model} {product_type}", "Advanced {category_lower} with cutting-edge features including {features}. Perfect for {use_case}."),
         ]
     }
     
@@ -115,6 +115,7 @@ def generate_sample_dataset(
             brand=brand,
             model=model,
             category=category,
+            category_lower=category.lower(),
             processor=processor,
             ram=ram,
             storage=storage,
