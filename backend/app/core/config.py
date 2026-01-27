@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
     OPENAI_TEMPERATURE: float = 0.3
     
+    # LangSmith Configuration
+    LANGSMITH_API_KEY: Optional[str] = None
+    LANGSMITH_TRACING_V2: str = "false"
+    LANGSMITH_PROJECT: Optional[str] = None
+    LANGSMITH_ENDPOINT: Optional[str] = None
+    
     # ChromaDB Configuration
     CHROMA_DB_PATH: str = "./data/chroma_db"
     CHROMA_COLLECTION_NAME: str = "documents"

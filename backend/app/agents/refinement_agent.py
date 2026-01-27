@@ -4,6 +4,7 @@ Refinement Agent - Refines and validates generated answers
 from typing import TypedDict
 from langchain_openai import ChatOpenAI
 from loguru import logger
+from langsmith import traceable
 from app.core.config import settings
 
 
@@ -17,6 +18,7 @@ class RefinementState(TypedDict):
     metadata: dict
 
 
+@traceable(name="refine_answer")
 def refine_answer(state: dict) -> dict:
     """
     Refine and validate the generated answer

@@ -4,6 +4,7 @@ Generation Agent - Generates answers using retrieved context
 from typing import TypedDict
 from langchain_openai import ChatOpenAI
 from loguru import logger
+from langsmith import traceable
 from app.core.config import settings
 
 
@@ -15,6 +16,7 @@ class GenerationState(TypedDict):
     retrieved_chunks: list
 
 
+@traceable(name="generate_answer")
 def generate_answer(state: dict) -> dict:
     """
     Generate answer using retrieved context

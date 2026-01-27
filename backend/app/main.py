@@ -5,11 +5,24 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+import os
 
 from app.core.config import settings
 from app.api.v1.router import api_router
 from app.db.chroma import init_chroma_db
 from app.utils.logger import logger as app_logger
+
+# Initialize LangSmith tracing
+if settings.LANGSMITH_API_KEY:
+    os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY
+    os.environ["LANGSMITH_TRACING_V2"] = settings.LANGSMITH_TRACING_V2
+    if settings.LANGSMITH_PROJECT:
+        os.environ["LANGSMITH_PROJECT"] = settings.LANGSMITH_PROJECT
+    if settings.LANGSMITH_ENDPOINT:
+        os.environ["LANGSMITH_ENDPOINT"] = settings.LANGSMITH_ENDPOINT
+    app_logger.info("LangSmith tracing enabled")
+else:
+    app_logger.info("LangSmith tracing disabled (no API key configured)")
 
 
 @asynccontextmanager

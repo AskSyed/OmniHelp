@@ -5,6 +5,7 @@ from typing import TypedDict, Literal
 from langchain_openai import ChatOpenAI
 from loguru import logger
 from app.core.config import settings
+from langsmith import traceable
 
 
 class QueryState(TypedDict):
@@ -15,7 +16,7 @@ class QueryState(TypedDict):
     reasoning: str
     filters: dict
 
-
+@traceable(name="classify_query")
 def classify_query(state: dict) -> dict:
     """
     Classify query intent and determine search strategy
