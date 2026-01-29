@@ -2,6 +2,7 @@
 Retrieval Agent - Performs vector search and retrieves relevant context
 """
 from typing import TypedDict, List, Dict, Any
+from langsmith import traceable
 from loguru import logger
 from app.services.embedding_service import EmbeddingService
 from app.db.chroma import query_documents
@@ -18,6 +19,7 @@ class RetrievalState(TypedDict):
     sources: List[str]
 
 
+@traceable(name="retrieve_context")
 def retrieve_context(state: dict) -> dict:
     """
     Retrieve relevant context from ChromaDB
