@@ -3,6 +3,7 @@ Main Orchestrator - Coordinates all agents in a Langgraph workflow
 """
 from typing import TypedDict, List, Dict, Any, Literal
 from langgraph.graph import StateGraph, END
+from langsmith import traceable
 from loguru import logger
 from app.agents.query_agent import classify_query
 from app.agents.retrieval_agent import retrieve_context
@@ -68,13 +69,14 @@ def create_rag_workflow() -> StateGraph:
     return workflow.compile()
 
 
+@traceable(name="finalize_response")
 def finalize_response(state: dict) -> dict:
     """
     Finalize the response by setting the final answer
-    
+
     Args:
         state: Current RAG state
-        
+
     Returns:
         Updated state with final answer
     """
@@ -95,6 +97,7 @@ def finalize_response(state: dict) -> dict:
 rag_workflow = create_rag_workflow()
 
 
+@traceable(name="process_query")
 async def process_query(query: str, n_results: int = 5, filters: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Process a query through the complete RAG workflow

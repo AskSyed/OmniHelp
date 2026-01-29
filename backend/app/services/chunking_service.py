@@ -2,7 +2,7 @@
 Text chunking service for document processing
 """
 from typing import List
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 from app.core.config import settings
 
