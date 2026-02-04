@@ -1,5 +1,5 @@
-# MCP Server
-mcp>=1.0.0
+# FastMCP - Simplified MCP Server Framework
+fastmcp>=0.2.0
 
 # Database
 sqlalchemy>=2.0.0
