@@ -325,5 +325,6 @@ if __name__ == "__main__":
     # Initialize database
     initialize_server()
     
-    # Run FastMCP server
-    mcp.run(transport="sse", port=8001)
+    # Run FastMCP server with SSE transport
+    # FastMCP automatically provides /sse endpoint
+    mcp.run(transport="sse", port=8001, host="0.0.0.0")

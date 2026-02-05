@@ -1,30 +1,31 @@
 """
-MCP Client Service for communicating with Order Management MCP Server
+MCP Client Service for communicating with Order Management MCP Server via SSE
 """
 import asyncio
 import json
 from typing import Any, Dict, List, Optional
 from contextlib import asynccontextmanager
 from loguru import logger
+import httpx
 
 try:
-    from mcp import ClientSession, StdioServerParameters
-    from mcp.client.stdio import stdio_client
+    from mcp import ClientSession
+    from mcp.client.sse import sse_client
 except ImportError:
     logger.warning("MCP client library not installed. MCP functionality will be disabled.")
     ClientSession = None
-    StdioServerParameters = None
-    stdio_client = None
+    sse_client = None
 
 from app.core.config import settings
 
 
 class MCPClientService:
-    """Service for interacting with MCP servers"""
+    """Service for interacting with MCP servers via SSE"""
     
     def __init__(self):
         self.session: Optional[Any] = None
-        self.server_params: Optional[Any] = None
+        self.server_url: Optional[str] = None
+        self._sse_context = None
         self._read_stream = None
         self._write_stream = None
         self._initialized = False
@@ -40,21 +41,10 @@ class MCPClientService:
             return
         
         try:
-            # Set up server parameters for stdio connection
-            import sys
-            import os
+            # Set up SSE endpoint URL
+            self.server_url = f"http://{settings.MCP_SERVER_HOST}:{settings.MCP_SERVER_PORT}/sse"
             
-            # Get the path to the MCP server
-            project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            mcp_server_path = os.path.join(project_root, "order_management_mcp")
-            
-            self.server_params = StdioServerParameters(
-                command=sys.executable,
-                args=["-m", "order_management_mcp"],
-                env={**os.environ, "PYTHONPATH": project_root}
-            )
-            
-            logger.info("MCP client initialized successfully")
+            logger.info(f"MCP client initialized with SSE endpoint: {self.server_url}")
             self._initialized = True
             
         except Exception as e:
@@ -62,13 +52,14 @@ class MCPClientService:
             self._initialized = False
     
     async def connect(self):
-        """Connect to the MCP server"""
+        """Connect to the MCP server via SSE"""
         if not self._initialized or not settings.MCP_SERVER_ENABLED:
             return
         
         try:
-            # Create stdio client connection
-            self._read_stream, self._write_stream = await stdio_client(self.server_params).__aenter__()
+            # Create SSE client connection
+            self._sse_context = sse_client(self.server_url)
+            self._read_stream, self._write_stream = await self._sse_context.__aenter__()
             
             # Create session
             self.session = ClientSession(self._read_stream, self._write_stream)
@@ -77,10 +68,12 @@ class MCPClientService:
             # Initialize the session
             await self.session.initialize()
             
-            logger.info("Connected to MCP server")
+            logger.info(f"Connected to MCP server via SSE at {self.server_url}")
             
         except Exception as e:
-            logger.error(f"Error connecting to MCP server: {e}")
+            logger.error(f"Error connecting to MCP server at {self.server_url}")
+            logger.error(f"Make sure the MCP server is running: python -m order_management_mcp.server_fastmcp")
+            logger.error(f"Error details: {e}")
             self.session = None
     
     async def disconnect(self):
@@ -90,8 +83,9 @@ class MCPClientService:
                 await self.session.__aexit__(None, None, None)
                 self.session = None
             
-            if self._read_stream and self._write_stream:
-                await stdio_client(self.server_params).__aexit__(None, None, None)
+            if self._sse_context:
+                await self._sse_context.__aexit__(None, None, None)
+                self._sse_context = None
                 self._read_stream = None
                 self._write_stream = None
             

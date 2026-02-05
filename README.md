@@ -56,6 +56,7 @@ graph TB
 ### Order Management MCP Server
 
 - **MCP (Model Context Protocol)**: Standardized server-client communication
+- **FastMCP**: Simplified MCP server framework with SSE transport
 - **SQLAlchemy**: Database ORM
 - **SQLite**: Lightweight database (easily swappable for PostgreSQL/MySQL)
 - **Pydantic**: Data validation and settings management
@@ -65,11 +66,14 @@ graph TB
 ```
 OmniHelp/
 ├── order_management_mcp/        # 🆕 MCP Server (separate service)
-│   ├── server.py                # MCP server implementation
+│   ├── server_fastmcp.py        # FastMCP server implementation (SSE)
+│   ├── server.py                # Legacy MCP server (stdio)
+│   ├── start_sse_server.py      # 🆕 SSE server startup script
 │   ├── database.py              # SQLAlchemy models & data
 │   ├── config.py                # Server configuration
 │   ├── requirements.txt         # Server dependencies
 │   ├── README.md                # Server documentation
+│   ├── SSE_SETUP.md             # 🆕 SSE configuration guide
 │   └── data/                    # SQLite database
 │       └── orders.db           # Order management DB
 ├── backend/
@@ -157,13 +161,15 @@ ALLOW_WRITE_OPERATIONS=false
 
 ### Running the Application
 
-**Terminal 1 - Start MCP Server:**
+**Terminal 1 - Start MCP Server (SSE Mode):**
 
 ```bash
 cd order_management_mcp
 source venv/bin/activate
-python -m order_management_mcp
+python start_sse_server.py
 ```
+
+The MCP server will start on `http://localhost:8001/sse`
 
 **Terminal 2 - Start Backend:**
 
@@ -173,11 +179,16 @@ source venv/bin/activate
 python -m app.main
 ```
 
+The backend will automatically connect to the MCP server via SSE.
+
 The application will be available at:
 
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 - Health Check: http://localhost:8000/health
+- MCP Server: http://localhost:8001/sse
+
+**Note:** The MCP server now uses SSE (Server-Sent Events) transport by default for better reliability and debugging. See [order_management_mcp/SSE_SETUP.md](order_management_mcp/SSE_SETUP.md) for details.
 
 ## 📖 Usage
 
