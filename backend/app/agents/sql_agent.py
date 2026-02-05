@@ -152,8 +152,6 @@ async def determine_mcp_tool(query: str) -> tuple[str, Dict[str, Any]]:
         return "get_customer_orders", {}
 
 
-@traceable(name="translate_query_to_sql")
-async def translate_query_to_sql(query: str) -> str:
     """
     Translate natural language query to SQL using LLM
     
@@ -209,60 +207,3 @@ async def translate_query_to_sql(query: str) -> str:
     except Exception as e:
         logger.error(f"Error translating query to SQL: {e}")
         raise
-
-
-def validate_sql(sql: str) -> bool:
-    """
-    Validate SQL query for safety
-    
-    Args:
-        sql: SQL query string
-        
-    Returns:
-        True if safe, False otherwise
-    """
-    sql_lower = sql.lower().strip()
-    
-    # Check for dangerous operations
-    dangerous_keywords = ["drop", "truncate", "alter", "create", "grant", "revoke", "delete", "insert", "update"]
-    for keyword in dangerous_keywords:
-        if re.search(rf'\b{keyword}\b', sql_lower):
-            logger.warning(f"Blocked dangerous SQL keyword: {keyword}")
-            return False
-    
-    # Only allow SELECT queries
-    if not sql_lower.startswith("select"):
-        logger.warning("Only SELECT queries are allowed")
-        return False
-    
-    return True
-
-
-def format_sql_results(results: List[Dict[str, Any]]) -> str:
-    """
-    Format SQL results into human-readable text
-    
-    Args:
-        results: List of result dictionaries
-        
-    Returns:
-        Formatted text
-    """
-    if not results:
-        return "No results found."
-    
-    output = "Results:\n\n"
-    
-    # Format as a table
-    if results:
-        headers = list(results[0].keys())
-        
-        # Header row
-        output += " | ".join(headers) + "\n"
-        output += "-" * (len(" | ".join(headers)) + 10) + "\n"
-        
-        # Data rows
-        for row in results:
-            output += " | ".join(str(row.get(h, "")) for h in headers) + "\n"
-    
-    return output
