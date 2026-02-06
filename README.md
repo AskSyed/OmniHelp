@@ -166,8 +166,7 @@ ALLOW_WRITE_OPERATIONS=false
 ```bash
 cd order_management_mcp
 source venv/bin/activate
-python start_sse_server.py OR
-python -m app.main
+python -m server_fastmcp
 ```
 
 The MCP server will start on `http://localhost:8001/sse`
