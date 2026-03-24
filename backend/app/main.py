@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.api.v1.router import api_router
 from app.db.chroma import init_chroma_db
 from app.utils.logger import logger as app_logger
+from app.services.mcp_client_service import initialize_mcp_client, shutdown_mcp_client
 
 
 @asynccontextmanager
@@ -44,12 +45,31 @@ async def lifespan(app: FastAPI):
     Path(settings.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
     Path(settings.CHROMA_DB_PATH).mkdir(parents=True, exist_ok=True)
     
+    # Initialize MCP Client
+    if settings.MCP_SERVER_ENABLED:
+        try:
+            await initialize_mcp_client()
+            app_logger.info("MCP client initialized successfully")
+        except Exception as e:
+            app_logger.error(f"Failed to initialize MCP client: {e}")
+            app_logger.warning("MCP functionality will be disabled")
+    else:
+        app_logger.info("MCP client disabled by configuration")
+    
     app_logger.info("Application startup complete")
     
     yield
     
     # Shutdown
     app_logger.info("Shutting down RAG Application...")
+    
+    # Shutdown MCP Client
+    if settings.MCP_SERVER_ENABLED:
+        try:
+            await shutdown_mcp_client()
+            app_logger.info("MCP client shutdown successfully")
+        except Exception as e:
+            app_logger.error(f"Error shutting down MCP client: {e}")
 
 
 app = FastAPI(
@@ -87,10 +107,21 @@ async def health_check():
     """Health check endpoint"""
     try:
         from app.db.chroma import get_collection_count
+        from app.services.mcp_client_service import get_mcp_client
+        
         count = get_collection_count()
+        
+        # Check MCP server connection
+        mcp_status = "disabled"
+        if settings.MCP_SERVER_ENABLED:
+            mcp_client = get_mcp_client()
+            mcp_connected = await mcp_client.check_connection()
+            mcp_status = "connected" if mcp_connected else "disconnected"
+        
         return {
             "status": "healthy",
-            "documents": count
+            "documents": count,
+            "mcp_server": mcp_status
         }
     except Exception as e:
         logger.error(f"Health check failed: {e}")

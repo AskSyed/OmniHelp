@@ -19,7 +19,75 @@ async def test_classify_query():
     
     result = classify_query(state)
     assert "intent" in result
-    assert result["intent"] in ["document_search", "metadata_filter", "general"]
+    assert result["intent"] in ["document_search", "metadata_filter", "general", "order_management"]
+
+
+@pytest.mark.asyncio
+async def test_classify_order_query():
+    """Test query classification for order management"""
+    state: QueryState = {
+        "query": "What is the status of order #123?",
+        "intent": "document_search",
+        "search_strategy": "",
+        "reasoning": "",
+        "filters": {}
+    }
+    
+    result = classify_query(state)
+    assert "intent" in result
+    # Should classify as order_management
+    assert result["intent"] == "order_management"
+
+
+@pytest.mark.asyncio
+async def test_classify_customer_order_query():
+    """Test query classification for customer orders"""
+    state: QueryState = {
+        "query": "Show me all orders for John Doe",
+        "intent": "document_search",
+        "search_strategy": "",
+        "reasoning": "",
+        "filters": {}
+    }
+    
+    result = classify_query(state)
+    assert "intent" in result
+    # Should classify as order_management
+    assert result["intent"] == "order_management"
+
+
+@pytest.mark.asyncio
+async def test_classify_inventory_query():
+    """Test query classification for inventory"""
+    state: QueryState = {
+        "query": "How many laptops are in stock?",
+        "intent": "document_search",
+        "search_strategy": "",
+        "reasoning": "",
+        "filters": {}
+    }
+    
+    result = classify_query(state)
+    assert "intent" in result
+    # Should classify as order_management
+    assert result["intent"] == "order_management"
+
+
+@pytest.mark.asyncio
+async def test_classify_document_query():
+    """Test query classification for document search"""
+    state: QueryState = {
+        "query": "What are the benefits of our product?",
+        "intent": "document_search",
+        "search_strategy": "",
+        "reasoning": "",
+        "filters": {}
+    }
+    
+    result = classify_query(state)
+    assert "intent" in result
+    # Should classify as document_search
+    assert result["intent"] in ["document_search", "general"]
 
 
 @pytest.mark.asyncio

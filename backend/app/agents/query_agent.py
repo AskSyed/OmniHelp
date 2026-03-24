@@ -13,7 +13,7 @@ from app.core.config import settings
 class QueryState(TypedDict):
     """State for query agent"""
     query: str
-    intent: Literal["document_search", "metadata_filter", "general"]
+    intent: Literal["document_search", "metadata_filter", "general", "order_management"]
     search_strategy: str
     reasoning: str
     filters: dict
@@ -40,15 +40,21 @@ def classify_query(state: dict) -> dict:
     
     classification_prompt = f"""
     Analyze the following user query and determine:
-    1. Intent: "document_search" (general document search), "metadata_filter" (specific document/source), or "general" (conversational)
+    1. Intent: Choose from:
+       - "order_management": Queries about orders, customers, products, inventory, order status, purchases
+       - "document_search": General document search
+       - "metadata_filter": Specific document/source queries
+       - "general": Conversational queries
     2. Search strategy: How to best retrieve relevant information
+    
+    Order management keywords: order, purchase, customer, product, inventory, stock, status, tracking, shipping, order ID (e.g., #123)
     
     Query: "{query}"
     
     Respond with JSON format:
     {{
-        "intent": "document_search" | "metadata_filter" | "general",
-        "search_strategy": "vector_similarity_search",
+        "intent": "order_management" | "document_search" | "metadata_filter" | "general",
+        "search_strategy": "vector_similarity_search" | "mcp_sql_query",
         "reasoning": "why this intent",
         "filters": {{}} or {{"source": "filename"}} if metadata filtering needed
     }}

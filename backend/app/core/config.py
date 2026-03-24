@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     
     # CORS Configuration
     CORS_ORIGINS: List[str] = ["*"]
+    
+    # MCP Server Configuration
+    MCP_SERVER_HOST: str = "localhost"
+    MCP_SERVER_PORT: int = 8001
+    MCP_SERVER_ENABLED: bool = True
 
 
 settings = Settings()
