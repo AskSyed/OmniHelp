@@ -133,6 +133,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install --no-deps -r requirements-chroma.txt  # skips onnxruntime (no Python 3.15 wheels, unused)
 ```
 
 #### 3. Configure Environment

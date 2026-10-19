@@ -44,6 +44,8 @@ fi
 echo "Installing backend dependencies..."
 source venv/bin/activate
 pip install -q -r requirements.txt
+# chromadb installed without deps: its onnxruntime dep has no Python 3.15 wheels and is unused here
+pip install -q --no-deps -r requirements-chroma.txt
 deactivate
 
 echo "✓ Backend setup complete"

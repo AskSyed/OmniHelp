@@ -21,3 +21,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env.local
 frontend/.env.*.local
+# Frontend (package.json must be tracked)
+!frontend/package.json
+JobSpec2.jpg
+JobSpec1.jpg

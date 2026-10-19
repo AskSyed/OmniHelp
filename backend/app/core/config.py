@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # LangSmith Configuration
     LANGSMITH_API_KEY: Optional[str] = None
-    LANGSMITH_TRACING_V2: str = "false"
+    LANGSMITH_TRACING_V2: str = "true"
     LANGSMITH_PROJECT: Optional[str] = None
     LANGSMITH_ENDPOINT: Optional[str] = None
     

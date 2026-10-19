@@ -1,0 +1,5 @@
+# Install AFTER requirements.txt, with --no-deps:
+#   pip install --no-deps -r requirements-chroma.txt
+# Skips chromadb's onnxruntime dependency (only used by Chroma's built-in default embedding
+# function; this app passes OpenAI embeddings explicitly, so it is never needed).
+chromadb==1.4.1
