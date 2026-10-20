@@ -15,6 +15,29 @@ class GenerationState(TypedDict):
     generated_answer: str
     retrieved_chunks: list
 
+
+NO_CONTEXT_ANSWER = "I couldn't find relevant information to answer your question. Please try rephrasing or upload relevant documents."
+
+
+def build_generation_prompt(query: str, context: str) -> str:
+    """Build the answer prompt (shared by the blocking and streaming paths)"""
+    return f"""You are a helpful assistant that answers questions based on the provided context from documents.
+
+Context from documents:
+{context}
+
+User Question: {query}
+
+Instructions:
+- Answer the question based solely on the provided context
+- If the context doesn't contain enough information, say so clearly
+- Be concise but comprehensive
+- Cite specific details from the context when relevant
+- If the question cannot be answered from the context, politely explain that
+
+Answer:"""
+
+
 @traceable(name="generate_answer")
 def generate_answer(state: dict) -> dict:
     """
@@ -36,25 +59,11 @@ def generate_answer(state: dict) -> dict:
     )
     
     if not context:
-        state["generated_answer"] = "I couldn't find relevant information to answer your question. Please try rephrasing or upload relevant documents."
+        state["generated_answer"] = NO_CONTEXT_ANSWER
         return state
-    
-    prompt = f"""You are a helpful assistant that answers questions based on the provided context from documents.
 
-Context from documents:
-{context}
+    prompt = build_generation_prompt(query, context)
 
-User Question: {query}
-
-Instructions:
-- Answer the question based solely on the provided context
-- If the context doesn't contain enough information, say so clearly
-- Be concise but comprehensive
-- Cite specific details from the context when relevant
-- If the question cannot be answered from the context, politely explain that
-
-Answer:"""
-    
     try:
         response = llm.invoke(prompt)
         answer = response.content if hasattr(response, "content") else str(response)
@@ -63,5 +72,6 @@ Answer:"""
     except Exception as e:
         logger.error(f"Error generating answer: {e}")
         state["generated_answer"] = "I apologize, but I encountered an error while generating an answer. Please try again."
+        state["error"] = str(e)
     
     return state

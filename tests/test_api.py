@@ -28,6 +28,7 @@ def test_query_endpoint_empty():
     assert response.status_code == 400
 
 
+@pytest.mark.integration
 def test_query_endpoint_valid():
     """Test query endpoint with valid query"""
     response = client.post("/api/v1/query", json={"query": "What is this?"})

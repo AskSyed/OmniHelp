@@ -5,6 +5,7 @@ from typing import TypedDict, List, Dict, Any, Literal
 from langgraph.graph import StateGraph, END
 from langsmith import traceable
 from loguru import logger
+from app.core.observability import tracer
 from app.agents.query_agent import classify_query
 from app.agents.retrieval_agent import retrieve_context
 from app.agents.sql_agent import execute_sql_query
@@ -134,6 +135,29 @@ def finalize_response(state: dict) -> dict:
 rag_workflow = create_rag_workflow()
 
 
+def build_initial_state(query: str, filters: Dict[str, Any] = None) -> RAGState:
+    """Build an empty workflow state for a query"""
+    return {
+        "query": query,
+        "intent": "document_search",
+        "search_strategy": "",
+        "reasoning": "",
+        "filters": filters or {},
+        "query_embedding": [],
+        "retrieved_chunks": [],
+        "context": "",
+        "sources": [],
+        "sql_query": "",
+        "sql_results": [],
+        "formatted_context": "",
+        "generated_answer": "",
+        "refined_answer": "",
+        "metadata": {},
+        "answer": "",
+        "error": ""
+    }
+
+
 @traceable(name="process_query")
 async def process_query(query: str, n_results: int = 5, filters: Dict[str, Any] = None) -> Dict[str, Any]:
     """
@@ -148,35 +172,23 @@ async def process_query(query: str, n_results: int = 5, filters: Dict[str, Any] 
         Dictionary with answer, sources, and metadata
     """
     try:
-        # Initialize state
-        initial_state: RAGState = {
-            "query": query,
-            "intent": "document_search",
-            "search_strategy": "",
-            "reasoning": "",
-            "filters": filters or {},
-            "query_embedding": [],
-            "retrieved_chunks": [],
-            "context": "",
-            "sources": [],
-            "sql_query": "",
-            "sql_results": [],
-            "formatted_context": "",
-            "generated_answer": "",
-            "refined_answer": "",
-            "metadata": {},
-            "answer": "",
-            "error": ""
-        }
-        
+        initial_state = build_initial_state(query, filters)
+
         # Run workflow
-        result = await rag_workflow.ainvoke(initial_state)
-        
+        with tracer.start_as_current_span("rag.workflow") as span:
+            result = await rag_workflow.ainvoke(initial_state)
+            span.set_attribute("rag.intent", result.get("intent", ""))
+            span.set_attribute("rag.sources_count", len(result.get("sources", [])))
+
+        metadata = {**result.get("metadata", {}), "intent": result.get("intent")}
+        if result.get("error"):
+            metadata["error"] = result["error"]
+
         return {
             "answer": result.get("answer", ""),
             "sources": result.get("sources", []),
             "retrieved_chunks": result.get("retrieved_chunks", []),
-            "metadata": result.get("metadata", {})
+            "metadata": metadata
         }
     
     except Exception as e:

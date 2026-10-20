@@ -1,17 +1,22 @@
 """
 Document management API endpoints
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from typing import List
 from loguru import logger
 from app.services.document_service import DocumentService
 from app.models.document import DocumentUploadResponse, DocumentInfo
+from app.core.security import require_scope
 
 router = APIRouter()
 document_service = DocumentService()
 
 
-@router.post("/upload", response_model=DocumentUploadResponse)
+@router.post(
+    "/upload",
+    response_model=DocumentUploadResponse,
+    dependencies=[Depends(require_scope("documents:write"))]
+)
 async def upload_document(file: UploadFile = File(...)):
     """
     Upload and process a PDF or CSV document
@@ -67,7 +72,7 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/", response_model=List[DocumentInfo])
+@router.get("/", response_model=List[DocumentInfo], dependencies=[Depends(require_scope("documents:read"))])
 async def list_documents():
     """
     List all uploaded documents
@@ -83,7 +88,7 @@ async def list_documents():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/{document_id}")
+@router.delete("/{document_id}", dependencies=[Depends(require_scope("documents:write"))])
 async def delete_document(document_id: str):
     """
     Delete a document from the vector database

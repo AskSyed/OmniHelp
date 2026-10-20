@@ -94,5 +94,6 @@ def retrieve_context(state: dict) -> dict:
         state["retrieved_chunks"] = []
         state["context"] = ""
         state["sources"] = []
+        state["error"] = str(e)
     
     return state

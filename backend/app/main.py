@@ -8,8 +8,10 @@ from loguru import logger
 import os
 
 from app.core.config import settings
+from app.core.observability import RequestContextMiddleware, setup_tracing
 from app.api.v1.router import api_router
 from app.db.chroma import init_chroma_db
+from app.db.redis import close_redis
 from app.utils.logger import logger as app_logger
 from app.services.mcp_client_service import initialize_mcp_client, shutdown_mcp_client
 
@@ -17,7 +19,8 @@ from app.services.mcp_client_service import initialize_mcp_client, shutdown_mcp_
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events"""
-   
+    tracer_provider = setup_tracing()
+
     if settings.LANGSMITH_API_KEY:
         os.environ["LANGSMITH_API_KEY"] = settings.LANGSMITH_API_KEY
         os.environ["LANGSMITH_TRACING_V2"] = settings.LANGSMITH_TRACING_V2
@@ -71,6 +74,10 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             app_logger.error(f"Error shutting down MCP client: {e}")
 
+    await close_redis()
+    # Flush spans still buffered in the batch processor
+    tracer_provider.shutdown()
+
 
 app = FastAPI(
     title="RAG Application API",
@@ -87,6 +94,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Added last so it is outermost: the span and request ID cover everything below it
+app.add_middleware(RequestContextMiddleware)
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")

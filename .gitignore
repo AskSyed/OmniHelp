@@ -16,6 +16,17 @@ __pycache__/
 # Ignore .DS_Store
 .DS_Store
 
+# Secrets and environment files (never commit credentials or API keys)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.*
+credentials.*
+
 # Frontend
 frontend/node_modules/
 frontend/dist/

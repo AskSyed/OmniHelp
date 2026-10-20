@@ -5,6 +5,9 @@ import pytest
 from app.agents.query_agent import classify_query, QueryState
 from app.agents.retrieval_agent import retrieve_context, RetrievalState
 
+# Calls live OpenAI / MCP services; excluded from the CI unit run
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.asyncio
 async def test_classify_query():

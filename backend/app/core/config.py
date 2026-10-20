@@ -1,6 +1,7 @@
 """
 Application configuration settings
 """
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List, Optional
 from pathlib import Path
@@ -65,6 +66,30 @@ class Settings(BaseSettings):
     MCP_SERVER_HOST: str = "localhost"
     MCP_SERVER_PORT: int = 8001
     MCP_SERVER_ENABLED: bool = True
+
+    # Authentication (JWT bearer tokens). Off for local dev; turn on per environment.
+    AUTH_ENABLED: bool = False
+    JWT_SECRET: Optional[SecretStr] = None
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ISSUER: str = "omnihelp-auth"
+    JWT_AUDIENCE: str = "omnihelp-api"
+
+    # Redis for the shared cache and rate limits. Unset = in-process fallback (one replica only).
+    REDIS_URL: Optional[str] = None
+    QUERY_CACHE_TTL_SECONDS: int = 300  # 0 disables the query cache
+    RATE_LIMIT_PER_MINUTE: int = 60  # 0 disables rate limiting
+
+    # OpenTelemetry tracing
+    OTEL_SERVICE_NAME: str = "omnihelp-backend"
+    OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = None  # e.g. http://localhost:4318
+    OTEL_CONSOLE_EXPORT: bool = False
+
+    @model_validator(mode="after")
+    def check_auth_secret(self) -> "Settings":
+        """Fail fast at startup instead of running with auth on and no signing key"""
+        if self.AUTH_ENABLED and not self.JWT_SECRET:
+            raise ValueError("JWT_SECRET must be set when AUTH_ENABLED=true")
+        return self
 
 
 settings = Settings()

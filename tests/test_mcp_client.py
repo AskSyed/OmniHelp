@@ -5,6 +5,9 @@ import pytest
 from app.services.mcp_client_service import MCPClientService, get_mcp_client
 from app.core.config import settings
 
+# Calls live OpenAI / MCP services; excluded from the CI unit run
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.asyncio
 async def test_mcp_client_initialization():
